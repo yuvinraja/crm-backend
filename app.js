@@ -3,10 +3,14 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+const connectDB = require('./utils/db');
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
+
+connectDB();
 
 app.use(logger('dev'));
 app.use(express.json());
