@@ -5,11 +5,49 @@ const {
   communicationLogIdSchema,
 } = require('../validators/communicationLogValidator');
 
-// Mock data for now (replace with actual database operations)
+// Mock data for now
 let communicationLogs = [];
 
 /**
- * GET /logs/:id - Get specific log entry
+ * @swagger
+ * /logs/{id}:
+ *   get:
+ *     summary: Get communication log by ID
+ *     description: Retrieves a specific communication log entry
+ *     tags: [Communication Logs]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Communication log ID
+ *     responses:
+ *       200:
+ *         description: Communication log retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/CommunicationLog'
+ *       404:
+ *         description: Communication log not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get(
   '/:id',

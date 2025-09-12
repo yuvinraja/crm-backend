@@ -7,13 +7,73 @@ const {
   campaignIdSchema,
 } = require('../validators/campaignValidator');
 
-// Mock data for now (replace with actual database operations)
+// Mock data for now
 let campaigns = [];
 let communicationLogs = []; // Mock communication logs
 let nextId = 1;
 
 /**
- * POST /campaigns - Create a campaign for a segment
+ * @swagger
+ * /campaigns:
+ *   post:
+ *     summary: Create a new campaign
+ *     description: Creates a new marketing campaign for a specific segment
+ *     tags: [Campaigns]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - message
+ *               - segmentId
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Campaign name
+ *               message:
+ *                 type: string
+ *                 description: Campaign message content
+ *               segmentId:
+ *                 type: string
+ *                 description: ID of the target segment
+ *               status:
+ *                 type: string
+ *                 enum: [draft, active, completed, cancelled]
+ *                 description: Campaign status
+ *           example:
+ *             name: "Summer Sale Campaign"
+ *             message: "Get 20% off on all summer items!"
+ *             segmentId: "1"
+ *             status: "draft"
+ *     responses:
+ *       201:
+ *         description: Campaign created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Campaign'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/', validate({ body: campaignCreateSchema }), (req, res) => {
   try {
@@ -46,7 +106,36 @@ router.post('/', validate({ body: campaignCreateSchema }), (req, res) => {
 });
 
 /**
- * GET /campaigns - List all campaigns with stats
+ * @swagger
+ * /campaigns:
+ *   get:
+ *     summary: Get all campaigns
+ *     description: Retrieves a list of all campaigns with their statistics
+ *     tags: [Campaigns]
+ *     responses:
+ *       200:
+ *         description: Campaigns retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Campaign'
+ *                 count:
+ *                   type: number
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/', (req, res) => {
   try {
@@ -66,7 +155,45 @@ router.get('/', (req, res) => {
 });
 
 /**
- * GET /campaigns/:id - View campaign details
+ * @swagger
+ * /campaigns/{id}:
+ *   get:
+ *     summary: Get campaign details
+ *     description: Retrieves detailed information about a specific campaign
+ *     tags: [Campaigns]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Campaign ID
+ *     responses:
+ *       200:
+ *         description: Campaign retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Campaign'
+ *       404:
+ *         description: Campaign not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/:id', validate({ params: campaignIdSchema }), (req, res) => {
   try {

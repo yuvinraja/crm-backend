@@ -7,13 +7,76 @@ const {
   customerIdSchema,
 } = require('../validators/customerValidator');
 
-// Mock data for now (replace with actual database operations)
+// Mock data for now
 let customers = [];
 let orders = []; // Mock orders data
 let nextId = 1;
 
 /**
- * POST /customers - Create a new customer
+ * @swagger
+ * /customers:
+ *   post:
+ *     summary: Create a new customer
+ *     description: Creates a new customer with the provided information
+ *     tags: [Customers]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Customer's full name
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Customer's email address
+ *               phone:
+ *                 type: string
+ *                 description: Customer's phone number
+ *               totalSpending:
+ *                 type: number
+ *                 description: Total amount spent by customer
+ *               lastVisit:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Last visit date
+ *           example:
+ *             name: "John Doe"
+ *             email: "john.doe@example.com"
+ *             phone: "+1234567890"
+ *             totalSpending: 150.50
+ *     responses:
+ *       201:
+ *         description: Customer created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Customer'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/', validate({ body: customerCreateSchema }), (req, res) => {
   try {
@@ -41,7 +104,36 @@ router.post('/', validate({ body: customerCreateSchema }), (req, res) => {
 });
 
 /**
- * GET /customers - List all customers
+ * @swagger
+ * /customers:
+ *   get:
+ *     summary: Get all customers
+ *     description: Retrieves a list of all customers
+ *     tags: [Customers]
+ *     responses:
+ *       200:
+ *         description: Customers retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Customer'
+ *                 count:
+ *                   type: number
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/', (req, res) => {
   try {
@@ -61,7 +153,45 @@ router.get('/', (req, res) => {
 });
 
 /**
- * GET /customers/:id - Get single customer
+ * @swagger
+ * /customers/{id}:
+ *   get:
+ *     summary: Get a customer by ID
+ *     description: Retrieves a single customer by their ID
+ *     tags: [Customers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Customer ID
+ *     responses:
+ *       200:
+ *         description: Customer retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Customer'
+ *       404:
+ *         description: Customer not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/:id', validate({ params: customerIdSchema }), (req, res) => {
   try {
@@ -89,7 +219,80 @@ router.get('/:id', validate({ params: customerIdSchema }), (req, res) => {
 });
 
 /**
- * PUT /customers/:id - Update customer
+ * @swagger
+ * /customers/{id}:
+ *   put:
+ *     summary: Update a customer
+ *     description: Updates an existing customer's information
+ *     tags: [Customers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Customer ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Customer's full name
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Customer's email address
+ *               phone:
+ *                 type: string
+ *                 description: Customer's phone number
+ *               totalSpending:
+ *                 type: number
+ *                 description: Total amount spent by customer
+ *               lastVisit:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Last visit date
+ *           example:
+ *             name: "John Doe Updated"
+ *             email: "john.updated@example.com"
+ *             phone: "+1234567890"
+ *             totalSpending: 250.75
+ *     responses:
+ *       200:
+ *         description: Customer updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Customer'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Customer not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.put(
   '/:id',
@@ -132,7 +335,45 @@ router.put(
 );
 
 /**
- * DELETE /customers/:id - Delete customer
+ * @swagger
+ * /customers/{id}:
+ *   delete:
+ *     summary: Delete a customer
+ *     description: Deletes an existing customer
+ *     tags: [Customers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Customer ID
+ *     responses:
+ *       200:
+ *         description: Customer deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Customer'
+ *       404:
+ *         description: Customer not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.delete('/:id', validate({ params: customerIdSchema }), (req, res) => {
   try {
@@ -164,7 +405,58 @@ router.delete('/:id', validate({ params: customerIdSchema }), (req, res) => {
 });
 
 /**
- * GET /customers/:id/orders - Get orders of one customer
+ * @swagger
+ * /customers/{id}/orders:
+ *   get:
+ *     summary: Get customer's orders
+ *     description: Retrieves all orders for a specific customer
+ *     tags: [Customers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Customer ID
+ *     responses:
+ *       200:
+ *         description: Customer orders retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Order'
+ *                 count:
+ *                   type: number
+ *                 customer:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *       404:
+ *         description: Customer not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get(
   '/:id/orders',

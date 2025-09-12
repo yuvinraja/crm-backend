@@ -7,12 +7,64 @@ const {
   segmentIdSchema,
 } = require('../validators/segmentValidator');
 
-// Mock data for now (replace with actual database operations)
+// Mock data for now
 let segments = [];
 let nextId = 1;
 
 /**
- * POST /segments - Create a segment with rules
+ * @swagger
+ * /segments:
+ *   post:
+ *     summary: Create a new customer segment
+ *     description: Creates a new customer segment with specific criteria
+ *     tags: [Segments]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - criteria
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Segment name
+ *               criteria:
+ *                 type: object
+ *                 description: Criteria for customer segmentation
+ *           example:
+ *             name: "High Value Customers"
+ *             criteria:
+ *               totalSpending:
+ *                 $gte: 1000
+ *     responses:
+ *       201:
+ *         description: Segment created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Segment'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/', validate({ body: segmentCreateSchema }), (req, res) => {
   try {
@@ -40,7 +92,36 @@ router.post('/', validate({ body: segmentCreateSchema }), (req, res) => {
 });
 
 /**
- * GET /segments - List all segments
+ * @swagger
+ * /segments:
+ *   get:
+ *     summary: Get all customer segments
+ *     description: Retrieves a list of all customer segments
+ *     tags: [Segments]
+ *     responses:
+ *       200:
+ *         description: Segments retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Segment'
+ *                 count:
+ *                   type: number
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/', (req, res) => {
   try {
