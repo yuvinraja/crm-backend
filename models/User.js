@@ -1,23 +1,35 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows multiple null values
+    },
+    provider: {
+      type: String,
+      enum: ['google', 'local'],
+      default: 'local',
+    },
+    avatar: {
+      type: String,
+    },
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true
-  },
-  age: {
-    type: Number,
-    min: 0
+  {
+    timestamps: true,
   }
-}, {
-  timestamps: true
-});
+);
 
 module.exports = mongoose.model('User', userSchema);

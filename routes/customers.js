@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const validate = require('../middlewares/validate');
+const { isAuthenticated } = require('../middlewares/auth');
 const {
   customerCreateSchema,
   customerUpdateSchema,
@@ -78,30 +79,35 @@ let nextId = 1;
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', validate({ body: customerCreateSchema }), (req, res) => {
-  try {
-    const customer = {
-      id: nextId++,
-      ...req.body,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+router.post(
+  '/',
+  isAuthenticated,
+  validate({ body: customerCreateSchema }),
+  (req, res) => {
+    try {
+      const customer = {
+        id: nextId++,
+        ...req.body,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-    customers.push(customer);
+      customers.push(customer);
 
-    res.status(201).json({
-      success: true,
-      message: 'Customer created successfully',
-      data: customer,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create customer',
-      error: error.message,
-    });
+      res.status(201).json({
+        success: true,
+        message: 'Customer created successfully',
+        data: customer,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create customer',
+        error: error.message,
+      });
+    }
   }
-});
+);
 
 /**
  * @swagger
