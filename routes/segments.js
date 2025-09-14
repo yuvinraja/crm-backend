@@ -75,20 +75,58 @@ router.post(
         name: req.body.name,
         description: req.body.description,
         rules: req.body.rules || [],
-        createdBy: req.user._id, // Using _id instead of id
+        createdBy: req.user._id,
       });
 
       await segment.save();
 
+      // Create a campaign for this segment
+      const Campaign = require('../models/Campaign');
+      const CommunicationLog = require('../models/CommunicationLog');
+      const campaignMessage = `Hi {{name}}, here’s 10% off on your next order!`;
+      const campaign = new Campaign({
+        name: `Auto Campaign for ${segment.name}`,
+        message: campaignMessage,
+        segmentId: segment._id,
+        status: 'Draft',
+      });
+      await campaign.save();
+
+      // Find customers matching segment rules (simple implementation: all active customers)
+      // TODO: Implement actual rule-based filtering
+      const customers = await Customer.find({ isActive: true });
+
+      // Create communication logs for each customer
+      const logs = [];
+      for (const customer of customers) {
+        const personalizedMsg = campaignMessage.replace(
+          '{{name}}',
+          customer.name
+        );
+        logs.push({
+          campaignId: campaign._id,
+          customerId: customer._id,
+          message: personalizedMsg,
+          deliveryStatus: 'PENDING',
+        });
+      }
+      if (logs.length > 0) {
+        await CommunicationLog.insertMany(logs);
+      }
+
       res.status(201).json({
         success: true,
-        message: 'Segment created successfully',
-        data: segment,
+        message: 'Segment created, campaign and logs initiated',
+        data: {
+          segment,
+          campaign,
+          logsCreated: logs.length,
+        },
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: 'Failed to create segment',
+        message: 'Failed to create segment and campaign',
         error: error.message,
       });
     }

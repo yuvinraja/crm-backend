@@ -18,6 +18,7 @@ var segmentsRouter = require('./routes/segments');
 var campaignsRouter = require('./routes/campaigns');
 var logsRouter = require('./routes/logs');
 var authRouter = require('./routes/auth');
+var vendorRouter = require('./routes/vendor');
 
 var app = express();
 
@@ -65,5 +66,6 @@ app.use('/orders', ordersRouter);
 app.use('/segments', segmentsRouter);
 app.use('/campaigns', campaignsRouter);
 app.use('/logs', logsRouter);
+app.use('/vendor', vendorRouter);
 
 module.exports = app;
