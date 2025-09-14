@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const validate = require('../middlewares/validate');
+const { isAuthenticated } = require('../middlewares/auth');
 const {
   communicationLogIdSchema,
 } = require('../validators/communicationLogValidator');
@@ -51,6 +52,7 @@ let communicationLogs = [];
  */
 router.get(
   '/:id',
+  isAuthenticated,
   validate({ params: communicationLogIdSchema }),
   (req, res) => {
     try {

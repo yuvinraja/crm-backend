@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const validate = require('../middlewares/validate');
+const { isAuthenticated } = require('../middlewares/auth');
 const {
   orderCreateSchema,
   orderUpdateSchema,
@@ -74,31 +75,36 @@ let nextId = 1;
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', validate({ body: orderCreateSchema }), (req, res) => {
-  try {
-    const order = {
-      id: nextId++,
-      ...req.body,
-      orderDate: req.body.orderDate || new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+router.post(
+  '/',
+  isAuthenticated,
+  validate({ body: orderCreateSchema }),
+  (req, res) => {
+    try {
+      const order = {
+        id: nextId++,
+        ...req.body,
+        orderDate: req.body.orderDate || new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-    orders.push(order);
+      orders.push(order);
 
-    res.status(201).json({
-      success: true,
-      message: 'Order created successfully',
-      data: order,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create order',
-      error: error.message,
-    });
+      res.status(201).json({
+        success: true,
+        message: 'Order created successfully',
+        data: order,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create order',
+        error: error.message,
+      });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -132,7 +138,7 @@ router.post('/', validate({ body: orderCreateSchema }), (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', (req, res) => {
+router.get('/', isAuthenticated, (req, res) => {
   try {
     res.json({
       success: true,
@@ -190,29 +196,34 @@ router.get('/', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', validate({ params: orderIdSchema }), (req, res) => {
-  try {
-    const order = orders.find((o) => o.id === parseInt(req.params.id));
+router.get(
+  '/:id',
+  isAuthenticated,
+  validate({ params: orderIdSchema }),
+  (req, res) => {
+    try {
+      const order = orders.find((o) => o.id === parseInt(req.params.id));
 
-    if (!order) {
-      return res.status(404).json({
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          message: 'Order not found',
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Order retrieved successfully',
+        data: order,
+      });
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: 'Order not found',
+        message: 'Failed to retrieve order',
+        error: error.message,
       });
     }
-
-    res.json({
-      success: true,
-      message: 'Order retrieved successfully',
-      data: order,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve order',
-      error: error.message,
-    });
   }
-});
+);
 
 module.exports = router;

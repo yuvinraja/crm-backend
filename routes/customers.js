@@ -141,7 +141,7 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', (req, res) => {
+router.get('/', isAuthenticated, (req, res) => {
   try {
     res.json({
       success: true,
@@ -199,30 +199,35 @@ router.get('/', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', validate({ params: customerIdSchema }), (req, res) => {
-  try {
-    const customer = customers.find((c) => c.id === parseInt(req.params.id));
+router.get(
+  '/:id',
+  isAuthenticated,
+  validate({ params: customerIdSchema }),
+  (req, res) => {
+    try {
+      const customer = customers.find((c) => c.id === parseInt(req.params.id));
 
-    if (!customer) {
-      return res.status(404).json({
+      if (!customer) {
+        return res.status(404).json({
+          success: false,
+          message: 'Customer not found',
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Customer retrieved successfully',
+        data: customer,
+      });
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: 'Customer not found',
+        message: 'Failed to retrieve customer',
+        error: error.message,
       });
     }
-
-    res.json({
-      success: true,
-      message: 'Customer retrieved successfully',
-      data: customer,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve customer',
-      error: error.message,
-    });
   }
-});
+);
 
 /**
  * @swagger
@@ -302,6 +307,7 @@ router.get('/:id', validate({ params: customerIdSchema }), (req, res) => {
  */
 router.put(
   '/:id',
+  isAuthenticated,
   validate({
     params: customerIdSchema,
     body: customerUpdateSchema,
@@ -381,34 +387,39 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', validate({ params: customerIdSchema }), (req, res) => {
-  try {
-    const customerIndex = customers.findIndex(
-      (c) => c.id === parseInt(req.params.id)
-    );
+router.delete(
+  '/:id',
+  isAuthenticated,
+  validate({ params: customerIdSchema }),
+  (req, res) => {
+    try {
+      const customerIndex = customers.findIndex(
+        (c) => c.id === parseInt(req.params.id)
+      );
 
-    if (customerIndex === -1) {
-      return res.status(404).json({
+      if (customerIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: 'Customer not found',
+        });
+      }
+
+      const deletedCustomer = customers.splice(customerIndex, 1)[0];
+
+      res.json({
+        success: true,
+        message: 'Customer deleted successfully',
+        data: deletedCustomer,
+      });
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: 'Customer not found',
+        message: 'Failed to delete customer',
+        error: error.message,
       });
     }
-
-    const deletedCustomer = customers.splice(customerIndex, 1)[0];
-
-    res.json({
-      success: true,
-      message: 'Customer deleted successfully',
-      data: deletedCustomer,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete customer',
-      error: error.message,
-    });
   }
-});
+);
 
 /**
  * @swagger
@@ -466,6 +477,7 @@ router.delete('/:id', validate({ params: customerIdSchema }), (req, res) => {
  */
 router.get(
   '/:id/orders',
+  isAuthenticated,
   validate({ params: customerIdSchema }),
   (req, res) => {
     try {

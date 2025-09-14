@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const validate = require('../middlewares/validate');
+const { isAuthenticated } = require('../middlewares/auth');
 const {
   segmentCreateSchema,
   segmentUpdateSchema,
@@ -66,30 +67,35 @@ let nextId = 1;
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', validate({ body: segmentCreateSchema }), (req, res) => {
-  try {
-    const segment = {
-      id: nextId++,
-      ...req.body,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+router.post(
+  '/',
+  isAuthenticated,
+  validate({ body: segmentCreateSchema }),
+  (req, res) => {
+    try {
+      const segment = {
+        id: nextId++,
+        ...req.body,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-    segments.push(segment);
+      segments.push(segment);
 
-    res.status(201).json({
-      success: true,
-      message: 'Segment created successfully',
-      data: segment,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create segment',
-      error: error.message,
-    });
+      res.status(201).json({
+        success: true,
+        message: 'Segment created successfully',
+        data: segment,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create segment',
+        error: error.message,
+      });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -123,7 +129,7 @@ router.post('/', validate({ body: segmentCreateSchema }), (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', (req, res) => {
+router.get('/', isAuthenticated, (req, res) => {
   try {
     res.json({
       success: true,
@@ -143,36 +149,42 @@ router.get('/', (req, res) => {
 /**
  * GET /segments/:id - View segment details
  */
-router.get('/:id', validate({ params: segmentIdSchema }), (req, res) => {
-  try {
-    const segment = segments.find((s) => s.id === parseInt(req.params.id));
+router.get(
+  '/:id',
+  isAuthenticated,
+  validate({ params: segmentIdSchema }),
+  (req, res) => {
+    try {
+      const segment = segments.find((s) => s.id === parseInt(req.params.id));
 
-    if (!segment) {
-      return res.status(404).json({
+      if (!segment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Segment not found',
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Segment retrieved successfully',
+        data: segment,
+      });
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: 'Segment not found',
+        message: 'Failed to retrieve segment',
+        error: error.message,
       });
     }
-
-    res.json({
-      success: true,
-      message: 'Segment retrieved successfully',
-      data: segment,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve segment',
-      error: error.message,
-    });
   }
-});
+);
 
 /**
  * PUT /segments/:id - Update rules or name
  */
 router.put(
   '/:id',
+  isAuthenticated,
   validate({
     params: segmentIdSchema,
     body: segmentUpdateSchema,
@@ -214,33 +226,38 @@ router.put(
 /**
  * DELETE /segments/:id - Delete segment
  */
-router.delete('/:id', validate({ params: segmentIdSchema }), (req, res) => {
-  try {
-    const segmentIndex = segments.findIndex(
-      (s) => s.id === parseInt(req.params.id)
-    );
+router.delete(
+  '/:id',
+  isAuthenticated,
+  validate({ params: segmentIdSchema }),
+  (req, res) => {
+    try {
+      const segmentIndex = segments.findIndex(
+        (s) => s.id === parseInt(req.params.id)
+      );
 
-    if (segmentIndex === -1) {
-      return res.status(404).json({
+      if (segmentIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: 'Segment not found',
+        });
+      }
+
+      const deletedSegment = segments.splice(segmentIndex, 1)[0];
+
+      res.json({
+        success: true,
+        message: 'Segment deleted successfully',
+        data: deletedSegment,
+      });
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: 'Segment not found',
+        message: 'Failed to delete segment',
+        error: error.message,
       });
     }
-
-    const deletedSegment = segments.splice(segmentIndex, 1)[0];
-
-    res.json({
-      success: true,
-      message: 'Segment deleted successfully',
-      data: deletedSegment,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete segment',
-      error: error.message,
-    });
   }
-});
+);
 
 module.exports = router;
