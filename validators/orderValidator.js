@@ -2,7 +2,9 @@ const { z } = require('zod');
 
 // Order validation schemas
 const orderCreateSchema = z.object({
-  customerId: z.string().regex(/^\d+$/, 'Invalid customer ID format'),
+  customerId: z
+    .string()
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid customer ID format'),
   orderDate: z.string().datetime('Invalid date format').or(z.date()).optional(),
   orderAmount: z.number().positive('Order amount must be positive'),
   status: z
@@ -14,7 +16,7 @@ const orderCreateSchema = z.object({
 const orderUpdateSchema = z.object({
   customerId: z
     .string()
-    .regex(/^\d+$/, 'Invalid customer ID format')
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid customer ID format')
     .optional(),
   orderDate: z.string().datetime('Invalid date format').or(z.date()).optional(),
   orderAmount: z.number().positive('Order amount must be positive').optional(),
@@ -22,10 +24,7 @@ const orderUpdateSchema = z.object({
 });
 
 const orderIdSchema = z.object({
-  id: z
-    .string()
-    .regex(/^\d+$/, 'Invalid order ID format')
-    .transform((val) => parseInt(val)),
+  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid order ID format'),
 });
 
 const orderStatusSchema = z.object({

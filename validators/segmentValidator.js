@@ -32,7 +32,10 @@ const segmentCreateSchema = z.object({
     .max(500, 'Description must be less than 500 characters')
     .optional(),
   rules: z.array(segmentRuleSchema).min(1, 'At least one rule is required'),
-  createdBy: z.string().regex(/^\d+$/, 'Invalid user ID format').optional(),
+  createdBy: z
+    .string()
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid user ID format')
+    .optional(),
 });
 
 const segmentUpdateSchema = z.object({
@@ -51,14 +54,14 @@ const segmentUpdateSchema = z.object({
     .array(segmentRuleSchema)
     .min(1, 'At least one rule is required')
     .optional(),
-  createdBy: z.string().regex(/^\d+$/, 'Invalid user ID format').optional(),
+  createdBy: z
+    .string()
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid user ID format')
+    .optional(),
 });
 
 const segmentIdSchema = z.object({
-  id: z
-    .string()
-    .regex(/^\d+$/, 'Invalid segment ID format')
-    .transform((val) => parseInt(val)),
+  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid segment ID format'),
 });
 
 module.exports = {

@@ -7,11 +7,9 @@ const {
   campaignUpdateSchema,
   campaignIdSchema,
 } = require('../validators/campaignValidator');
-
-// Mock data for now
-let campaigns = [];
-let communicationLogs = []; // Mock communication logs
-let nextId = 1;
+const Campaign = require('../models/Campaign');
+const Segment = require('../models/Segment');
+const CommunicationLog = require('../models/CommunicationLog');
 
 /**
  * @swagger
@@ -80,21 +78,26 @@ router.post(
   '/',
   isAuthenticated,
   validate({ body: campaignCreateSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const campaign = {
-        id: nextId++,
-        ...req.body,
-        stats: {
-          sent: 0,
-          delivered: 0,
-          failed: 0,
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      // Verify segment exists
+      const segment = await Segment.findById(req.body.segmentId);
+      if (!segment) {
+        return res.status(400).json({
+          success: false,
+          message: 'Segment not found',
+        });
+      }
 
-      campaigns.push(campaign);
+      const campaign = new Campaign({
+        name: req.body.name,
+        message: req.body.message,
+        segmentId: req.body.segmentId,
+        status: req.body.status || 'Draft',
+        scheduledAt: req.body.scheduledAt,
+      });
+
+      await campaign.save();
 
       res.status(201).json({
         success: true,
@@ -143,8 +146,12 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', isAuthenticated, (req, res) => {
+router.get('/', isAuthenticated, async (req, res) => {
   try {
+    const campaigns = await Campaign.find()
+      .populate('segmentId', 'name description')
+      .sort({ createdAt: -1 });
+
     res.json({
       success: true,
       message: 'Campaigns retrieved successfully',
@@ -205,9 +212,12 @@ router.get(
   '/:id',
   isAuthenticated,
   validate({ params: campaignIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const campaign = campaigns.find((c) => c.id === parseInt(req.params.id));
+      const campaign = await Campaign.findById(req.params.id).populate(
+        'segmentId',
+        'name description'
+      );
 
       if (!campaign) {
         return res.status(404).json({
@@ -241,29 +251,36 @@ router.put(
     params: campaignIdSchema,
     body: campaignUpdateSchema,
   }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const campaignIndex = campaigns.findIndex(
-        (c) => c.id === parseInt(req.params.id)
-      );
+      // If segmentId is being updated, verify it exists
+      if (req.body.segmentId) {
+        const segment = await Segment.findById(req.body.segmentId);
+        if (!segment) {
+          return res.status(400).json({
+            success: false,
+            message: 'Segment not found',
+          });
+        }
+      }
 
-      if (campaignIndex === -1) {
+      const campaign = await Campaign.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true, runValidators: true }
+      ).populate('segmentId', 'name description');
+
+      if (!campaign) {
         return res.status(404).json({
           success: false,
           message: 'Campaign not found',
         });
       }
 
-      campaigns[campaignIndex] = {
-        ...campaigns[campaignIndex],
-        ...req.body,
-        updatedAt: new Date(),
-      };
-
       res.json({
         success: true,
         message: 'Campaign updated successfully',
-        data: campaigns[campaignIndex],
+        data: campaign,
       });
     } catch (error) {
       res.status(500).json({
@@ -282,25 +299,24 @@ router.delete(
   '/:id',
   isAuthenticated,
   validate({ params: campaignIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const campaignIndex = campaigns.findIndex(
-        (c) => c.id === parseInt(req.params.id)
-      );
+      const campaign = await Campaign.findByIdAndDelete(req.params.id);
 
-      if (campaignIndex === -1) {
+      if (!campaign) {
         return res.status(404).json({
           success: false,
           message: 'Campaign not found',
         });
       }
 
-      const deletedCampaign = campaigns.splice(campaignIndex, 1)[0];
+      // Also delete related communication logs
+      await CommunicationLog.deleteMany({ campaignId: req.params.id });
 
       res.json({
         success: true,
         message: 'Campaign deleted successfully',
-        data: deletedCampaign,
+        data: campaign,
       });
     } catch (error) {
       res.status(500).json({
@@ -319,12 +335,10 @@ router.get(
   '/:id/logs',
   isAuthenticated,
   validate({ params: campaignIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const campaignId = parseInt(req.params.id);
-
       // Check if campaign exists
-      const campaign = campaigns.find((c) => c.id === campaignId);
+      const campaign = await Campaign.findById(req.params.id);
       if (!campaign) {
         return res.status(404).json({
           success: false,
@@ -332,10 +346,12 @@ router.get(
         });
       }
 
-      // Filter communication logs for this campaign
-      const campaignLogs = communicationLogs.filter(
-        (log) => log.campaignId === campaignId
-      );
+      // Get communication logs for this campaign
+      const campaignLogs = await CommunicationLog.find({
+        campaignId: req.params.id,
+      })
+        .populate('customerId', 'name email')
+        .sort({ createdAt: -1 });
 
       res.json({
         success: true,
@@ -343,7 +359,7 @@ router.get(
         data: campaignLogs,
         count: campaignLogs.length,
         campaign: {
-          id: campaign.id,
+          id: campaign._id,
           name: campaign.name,
           status: campaign.status,
         },

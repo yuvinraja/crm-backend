@@ -7,11 +7,8 @@ const {
   customerUpdateSchema,
   customerIdSchema,
 } = require('../validators/customerValidator');
-
-// Mock data for now
-let customers = [];
-let orders = []; // Mock orders data
-let nextId = 1;
+const Customer = require('../models/Customer');
+const Order = require('../models/Order');
 
 /**
  * @swagger
@@ -83,16 +80,10 @@ router.post(
   '/',
   isAuthenticated,
   validate({ body: customerCreateSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const customer = {
-        id: nextId++,
-        ...req.body,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      customers.push(customer);
+      const customer = new Customer(req.body);
+      await customer.save();
 
       res.status(201).json({
         success: true,
@@ -100,11 +91,20 @@ router.post(
         data: customer,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create customer',
-        error: error.message,
-      });
+      if (error.code === 11000) {
+        // Duplicate email error
+        res.status(400).json({
+          success: false,
+          message: 'Email already exists',
+          error: 'Duplicate email address',
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to create customer',
+          error: error.message,
+        });
+      }
     }
   }
 );
@@ -141,8 +141,12 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', isAuthenticated, (req, res) => {
+router.get('/', isAuthenticated, async (req, res) => {
   try {
+    const customers = await Customer.find({ isActive: true }).sort({
+      createdAt: -1,
+    });
+
     res.json({
       success: true,
       message: 'Customers retrieved successfully',
@@ -203,11 +207,11 @@ router.get(
   '/:id',
   isAuthenticated,
   validate({ params: customerIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const customer = customers.find((c) => c.id === parseInt(req.params.id));
+      const customer = await Customer.findById(req.params.id);
 
-      if (!customer) {
+      if (!customer || !customer.isActive) {
         return res.status(404).json({
           success: false,
           message: 'Customer not found',
@@ -312,36 +316,41 @@ router.put(
     params: customerIdSchema,
     body: customerUpdateSchema,
   }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const customerIndex = customers.findIndex(
-        (c) => c.id === parseInt(req.params.id)
+      const customer = await Customer.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true, runValidators: true }
       );
 
-      if (customerIndex === -1) {
+      if (!customer || !customer.isActive) {
         return res.status(404).json({
           success: false,
           message: 'Customer not found',
         });
       }
 
-      customers[customerIndex] = {
-        ...customers[customerIndex],
-        ...req.body,
-        updatedAt: new Date(),
-      };
-
       res.json({
         success: true,
         message: 'Customer updated successfully',
-        data: customers[customerIndex],
+        data: customer,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to update customer',
-        error: error.message,
-      });
+      if (error.code === 11000) {
+        // Duplicate email error
+        res.status(400).json({
+          success: false,
+          message: 'Email already exists',
+          error: 'Duplicate email address',
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: 'Failed to update customer',
+          error: error.message,
+        });
+      }
     }
   }
 );
@@ -391,25 +400,26 @@ router.delete(
   '/:id',
   isAuthenticated,
   validate({ params: customerIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const customerIndex = customers.findIndex(
-        (c) => c.id === parseInt(req.params.id)
+      // Soft delete by setting isActive to false
+      const customer = await Customer.findByIdAndUpdate(
+        req.params.id,
+        { isActive: false },
+        { new: true }
       );
 
-      if (customerIndex === -1) {
+      if (!customer) {
         return res.status(404).json({
           success: false,
           message: 'Customer not found',
         });
       }
 
-      const deletedCustomer = customers.splice(customerIndex, 1)[0];
-
       res.json({
         success: true,
         message: 'Customer deleted successfully',
-        data: deletedCustomer,
+        data: customer,
       });
     } catch (error) {
       res.status(500).json({
@@ -479,23 +489,21 @@ router.get(
   '/:id/orders',
   isAuthenticated,
   validate({ params: customerIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const customerId = parseInt(req.params.id);
-
       // Check if customer exists
-      const customer = customers.find((c) => c.id === customerId);
-      if (!customer) {
+      const customer = await Customer.findById(req.params.id);
+      if (!customer || !customer.isActive) {
         return res.status(404).json({
           success: false,
           message: 'Customer not found',
         });
       }
 
-      // Filter orders for this customer
-      const customerOrders = orders.filter(
-        (o) => o.customerId === customerId.toString()
-      );
+      // Get orders for this customer
+      const customerOrders = await Order.find({
+        customerId: req.params.id,
+      }).sort({ orderDate: -1 });
 
       res.json({
         success: true,
@@ -503,7 +511,7 @@ router.get(
         data: customerOrders,
         count: customerOrders.length,
         customer: {
-          id: customer.id,
+          id: customer._id,
           name: customer.name,
           email: customer.email,
         },

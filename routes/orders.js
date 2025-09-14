@@ -8,10 +8,8 @@ const {
   orderIdSchema,
 } = require('../validators/orderValidator');
 const { customerIdSchema } = require('../validators/customerValidator');
-
-// Mock data for now
-let orders = [];
-let nextId = 1;
+const Order = require('../models/Order');
+const Customer = require('../models/Customer');
 
 /**
  * @swagger
@@ -79,17 +77,34 @@ router.post(
   '/',
   isAuthenticated,
   validate({ body: orderCreateSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const order = {
-        id: nextId++,
-        ...req.body,
-        orderDate: req.body.orderDate || new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      // Verify customer exists
+      const customer = await Customer.findById(req.body.customerId);
+      if (!customer || !customer.isActive) {
+        return res.status(400).json({
+          success: false,
+          message: 'Customer not found',
+        });
+      }
 
-      orders.push(order);
+      const order = new Order({
+        customerId: req.body.customerId,
+        orderAmount: req.body.amount,
+        status: req.body.status || 'Pending',
+        orderDate: req.body.orderDate || new Date(),
+      });
+
+      await order.save();
+
+      // Update customer's total spending and visit count
+      await Customer.findByIdAndUpdate(req.body.customerId, {
+        $inc: {
+          totalSpending: req.body.amount,
+          visits: 1,
+        },
+        lastVisit: new Date(),
+      });
 
       res.status(201).json({
         success: true,
@@ -138,8 +153,12 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', isAuthenticated, (req, res) => {
+router.get('/', isAuthenticated, async (req, res) => {
   try {
+    const orders = await Order.find()
+      .populate('customerId', 'name email')
+      .sort({ orderDate: -1 });
+
     res.json({
       success: true,
       message: 'Orders retrieved successfully',
@@ -200,9 +219,12 @@ router.get(
   '/:id',
   isAuthenticated,
   validate({ params: orderIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const order = orders.find((o) => o.id === parseInt(req.params.id));
+      const order = await Order.findById(req.params.id).populate(
+        'customerId',
+        'name email'
+      );
 
       if (!order) {
         return res.status(404).json({

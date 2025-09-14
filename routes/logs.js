@@ -5,9 +5,61 @@ const { isAuthenticated } = require('../middlewares/auth');
 const {
   communicationLogIdSchema,
 } = require('../validators/communicationLogValidator');
+const CommunicationLog = require('../models/CommunicationLog');
 
-// Mock data for now
-let communicationLogs = [];
+/**
+ * @swagger
+ * /logs:
+ *   get:
+ *     summary: Get all communication logs
+ *     description: Retrieves a list of all communication logs
+ *     tags: [Communication Logs]
+ *     responses:
+ *       200:
+ *         description: Communication logs retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/CommunicationLog'
+ *                 count:
+ *                   type: number
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/', isAuthenticated, async (req, res) => {
+  try {
+    const logs = await CommunicationLog.find()
+      .populate('campaignId', 'name message status')
+      .populate('customerId', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      message: 'Communication logs retrieved successfully',
+      data: logs,
+      count: logs.length,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve communication logs',
+      error: error.message,
+    });
+  }
+});
 
 /**
  * @swagger
@@ -54,11 +106,11 @@ router.get(
   '/:id',
   isAuthenticated,
   validate({ params: communicationLogIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const log = communicationLogs.find(
-        (l) => l.id === parseInt(req.params.id)
-      );
+      const log = await CommunicationLog.findById(req.params.id)
+        .populate('campaignId', 'name message status')
+        .populate('customerId', 'name email');
 
       if (!log) {
         return res.status(404).json({

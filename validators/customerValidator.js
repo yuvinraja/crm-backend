@@ -55,10 +55,7 @@ const customerUpdateSchema = z.object({
 });
 
 const customerIdSchema = z.object({
-  id: z
-    .string()
-    .regex(/^\d+$/, 'Invalid customer ID format')
-    .transform((val) => parseInt(val)),
+  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid customer ID format'),
 });
 
 module.exports = {

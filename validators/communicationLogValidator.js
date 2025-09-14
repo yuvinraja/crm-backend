@@ -2,8 +2,12 @@ const { z } = require('zod');
 
 // Communication log validation schemas
 const communicationLogCreateSchema = z.object({
-  campaignId: z.string().regex(/^\d+$/, 'Invalid campaign ID format'),
-  customerId: z.string().regex(/^\d+$/, 'Invalid customer ID format'),
+  campaignId: z
+    .string()
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid campaign ID format'),
+  customerId: z
+    .string()
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid customer ID format'),
   message: z
     .string()
     .trim()
@@ -35,11 +39,11 @@ const communicationLogCreateSchema = z.object({
 const communicationLogUpdateSchema = z.object({
   campaignId: z
     .string()
-    .regex(/^\d+$/, 'Invalid campaign ID format')
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid campaign ID format')
     .optional(),
   customerId: z
     .string()
-    .regex(/^\d+$/, 'Invalid customer ID format')
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid customer ID format')
     .optional(),
   message: z
     .string()
@@ -70,8 +74,7 @@ const communicationLogUpdateSchema = z.object({
 const communicationLogIdSchema = z.object({
   id: z
     .string()
-    .regex(/^\d+$/, 'Invalid communication log ID format')
-    .transform((val) => parseInt(val)),
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid communication log ID format'),
 });
 
 const deliveryStatusSchema = z.object({

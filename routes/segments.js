@@ -7,10 +7,8 @@ const {
   segmentUpdateSchema,
   segmentIdSchema,
 } = require('../validators/segmentValidator');
-
-// Mock data for now
-let segments = [];
-let nextId = 1;
+const Segment = require('../models/Segment');
+const Customer = require('../models/Customer');
 
 /**
  * @swagger
@@ -71,16 +69,16 @@ router.post(
   '/',
   isAuthenticated,
   validate({ body: segmentCreateSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const segment = {
-        id: nextId++,
-        ...req.body,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const segment = new Segment({
+        name: req.body.name,
+        description: req.body.description,
+        rules: req.body.rules || [],
+        createdBy: req.user._id, // Using _id instead of id
+      });
 
-      segments.push(segment);
+      await segment.save();
 
       res.status(201).json({
         success: true,
@@ -129,8 +127,12 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', isAuthenticated, (req, res) => {
+router.get('/', isAuthenticated, async (req, res) => {
   try {
+    const segments = await Segment.find()
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 });
+
     res.json({
       success: true,
       message: 'Segments retrieved successfully',
@@ -153,9 +155,12 @@ router.get(
   '/:id',
   isAuthenticated,
   validate({ params: segmentIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const segment = segments.find((s) => s.id === parseInt(req.params.id));
+      const segment = await Segment.findById(req.params.id).populate(
+        'createdBy',
+        'name email'
+      );
 
       if (!segment) {
         return res.status(404).json({
@@ -189,29 +194,24 @@ router.put(
     params: segmentIdSchema,
     body: segmentUpdateSchema,
   }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const segmentIndex = segments.findIndex(
-        (s) => s.id === parseInt(req.params.id)
-      );
+      const segment = await Segment.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+      }).populate('createdBy', 'name email');
 
-      if (segmentIndex === -1) {
+      if (!segment) {
         return res.status(404).json({
           success: false,
           message: 'Segment not found',
         });
       }
 
-      segments[segmentIndex] = {
-        ...segments[segmentIndex],
-        ...req.body,
-        updatedAt: new Date(),
-      };
-
       res.json({
         success: true,
         message: 'Segment updated successfully',
-        data: segments[segmentIndex],
+        data: segment,
       });
     } catch (error) {
       res.status(500).json({
@@ -230,25 +230,21 @@ router.delete(
   '/:id',
   isAuthenticated,
   validate({ params: segmentIdSchema }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      const segmentIndex = segments.findIndex(
-        (s) => s.id === parseInt(req.params.id)
-      );
+      const segment = await Segment.findByIdAndDelete(req.params.id);
 
-      if (segmentIndex === -1) {
+      if (!segment) {
         return res.status(404).json({
           success: false,
           message: 'Segment not found',
         });
       }
 
-      const deletedSegment = segments.splice(segmentIndex, 1)[0];
-
       res.json({
         success: true,
         message: 'Segment deleted successfully',
-        data: deletedSegment,
+        data: segment,
       });
     } catch (error) {
       res.status(500).json({

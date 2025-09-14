@@ -7,7 +7,7 @@ const campaignCreateSchema = z.object({
     .trim()
     .min(1, 'Campaign name is required')
     .max(200, 'Campaign name must be less than 200 characters'),
-  segmentId: z.string().regex(/^\d+$/, 'Invalid segment ID format'),
+  segmentId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid segment ID format'),
   message: z
     .string()
     .trim()
@@ -44,7 +44,10 @@ const campaignUpdateSchema = z.object({
     .min(1, 'Campaign name is required')
     .max(200, 'Campaign name must be less than 200 characters')
     .optional(),
-  segmentId: z.string().regex(/^\d+$/, 'Invalid segment ID format').optional(),
+  segmentId: z
+    .string()
+    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid segment ID format')
+    .optional(),
   message: z
     .string()
     .trim()
@@ -75,10 +78,7 @@ const campaignUpdateSchema = z.object({
 });
 
 const campaignIdSchema = z.object({
-  id: z
-    .string()
-    .regex(/^\d+$/, 'Invalid campaign ID format')
-    .transform((val) => parseInt(val)),
+  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid campaign ID format'),
 });
 
 const campaignStatusSchema = z.object({
