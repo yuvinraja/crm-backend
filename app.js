@@ -33,12 +33,12 @@ app.use(cookieParser());
 // Security headers
 app.use(helmet());
 
-// CORS configuration
-// ALLOWED_ORIGINS can be a comma-separated list. If not set, defaults to '*'.
-const allowedOrigins = ('*')
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean);
+// // CORS configuration
+// // ALLOWED_ORIGINS can be a comma-separated list. If not set, defaults to '*'.
+// const allowedOrigins = ('*')
+//   .split(',')
+//   .map((o) => o.trim())
+//   .filter(Boolean);
 
 const corsOptions = {
   // origin: allowedOrigins.includes('*')
