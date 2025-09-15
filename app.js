@@ -10,15 +10,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 
 const connectDB = require('./utils/db');
-
-var indexRouter = require('./routes/index');
-var customersRouter = require('./routes/customers');
-var ordersRouter = require('./routes/orders');
-var segmentsRouter = require('./routes/segments');
-var campaignsRouter = require('./routes/campaigns');
-var logsRouter = require('./routes/logs');
-var authRouter = require('./routes/auth');
-var vendorRouter = require('./routes/vendor');
+const indexRouter = require('./routes/index');
 
 var app = express();
 
@@ -60,12 +52,9 @@ app.use(
 );
 
 app.use('/', indexRouter);
-app.use('/auth', authRouter);
-app.use('/customers', customersRouter);
-app.use('/orders', ordersRouter);
-app.use('/segments', segmentsRouter);
-app.use('/campaigns', campaignsRouter);
-app.use('/logs', logsRouter);
-app.use('/vendor', vendorRouter);
+
+app.get('/', (req, res) => {
+  res.send('Welcome to the CRM Backend API');
+});
 
 module.exports = app;

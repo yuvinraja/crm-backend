@@ -1,30 +1,18 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
-/**
- * @swagger
- * /:
- *   get:
- *     summary: API Health Check
- *     description: Returns a simple message to confirm the API is running
- *     tags: [General]
- *     responses:
- *       200:
- *         description: API is running successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "CRM Backend API"
- *                 title:
- *                   type: string
- *                   example: "Express"
- */
-router.get('/', function (req, res, next) {
-  res.json({ message: 'CRM Backend API', title: 'Express' });
-});
+const authRoutes = require('./auth');
+const customerRoutes = require('./customers');
+const orderRoutes = require('./orders');
+const segmentRoutes = require('./segments');
+const campaignRoutes = require('./campaigns');
+const communicationRoutes = require('./communications');
+
+router.use('/auth', authRoutes);
+router.use('/api/customers', customerRoutes);
+router.use('/api/orders', orderRoutes);
+router.use('/api/segments', segmentRoutes);
+router.use('/api/campaigns', campaignRoutes);
+router.use('/api/communications', communicationRoutes);
 
 module.exports = router;
