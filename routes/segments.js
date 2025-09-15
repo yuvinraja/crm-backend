@@ -8,28 +8,117 @@ const { segmentValidator } = require('../validators');
 // Apply authentication to all routes
 router.use(ensureAuth);
 
-// @desc    Create segment
-// @route   POST /api/segments
+/**
+ * @swagger
+ * tags:
+ *   name: Segments
+ *   description: Segment management
+ */
+
+/**
+ * @swagger
+ * /segments:
+ *   post:
+ *     summary: Create a new segment
+ *     tags: [Segments]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Segment'
+ *     responses:
+ *       201:
+ *         description: The created segment
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Segment'
+ *       400:
+ *         description: Bad request
+ */
 router.post(
   '/',
   validate({ body: segmentValidator.segmentCreateSchema }),
   segmentController.createSegment
 );
 
-// @desc    Get all segments for user
-// @route   GET /api/segments
+/**
+ * @swagger
+ * /segments:
+ *   get:
+ *     summary: Get all segments
+ *     tags: [Segments]
+ *     responses:
+ *       200:
+ *         description: A list of segments
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Segment'
+ */
 router.get('/', segmentController.getAllSegments);
 
-// @desc    Get segment by ID
-// @route   GET /api/segments/:id
+/**
+ * @swagger
+ * /segments/{id}:
+ *   get:
+ *     summary: Get a segment by ID
+ *     tags: [Segments]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The segment ID
+ *     responses:
+ *       200:
+ *         description: The segment description by id
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Segment'
+ *       404:
+ *         description: Segment not found
+ */
 router.get(
   '/:id',
   validate({ params: segmentValidator.segmentIdSchema }),
   segmentController.getSegmentById
 );
 
-// @desc    Update segment
-// @route   PUT /api/segments/:id
+/**
+ * @swagger
+ * /segments/{id}:
+ *   put:
+ *     summary: Update a segment
+ *     tags: [Segments]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The segment ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Segment'
+ *     responses:
+ *       200:
+ *         description: The updated segment
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Segment'
+ *       404:
+ *         description: Segment not found
+ */
 router.put(
   '/:id',
   validate({
@@ -39,20 +128,56 @@ router.put(
   segmentController.updateSegment
 );
 
-// @desc    Delete segment
-// @route   DELETE /api/segments/:id
+/**
+ * @swagger
+ * /segments/{id}:
+ *   delete:
+ *     summary: Delete a segment
+ *     tags: [Segments]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The segment ID
+ *     responses:
+ *       200:
+ *         description: Segment deleted
+ *       404:
+ *         description: Segment not found
+ */
 router.delete(
   '/:id',
   validate({ params: segmentValidator.segmentIdSchema }),
   segmentController.deleteSegment
 );
 
-// @desc    Preview segment audience
-// @route   POST /api/segments/preview
-router.post('/preview', segmentController.previewSegment);
-
-// @desc    Get segment customers
-// @route   GET /api/segments/:id/customers
+/**
+ * @swagger
+ * /segments/{id}/audience:
+ *   get:
+ *     summary: Preview segment audience
+ *     tags: [Segments]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The segment ID
+ *     responses:
+ *       200:
+ *         description: A list of customers in the segment
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Customer'
+ *       404:
+ *         description: Segment not found
+ */
 router.get(
   '/:id/customers',
   validate({ params: segmentValidator.segmentIdSchema }),

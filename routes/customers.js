@@ -8,28 +8,117 @@ const { customerValidator } = require('../validators');
 // Apply authentication to all routes
 router.use(ensureAuth);
 
-// @desc    Create customer
-// @route   POST /api/customers
+/**
+ * @swagger
+ * tags:
+ *   name: Customers
+ *   description: Customer management
+ */
+
+/**
+ * @swagger
+ * /customers:
+ *   post:
+ *     summary: Create a new customer
+ *     tags: [Customers]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Customer'
+ *     responses:
+ *       201:
+ *         description: The created customer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Customer'
+ *       400:
+ *         description: Bad request
+ */
 router.post(
   '/',
   validate({ body: customerValidator.customerCreateSchema }),
   customerController.createCustomer
 );
 
-// @desc    Get all customers
-// @route   GET /api/customers
+/**
+ * @swagger
+ * /customers:
+ *   get:
+ *     summary: Get all customers
+ *     tags: [Customers]
+ *     responses:
+ *       200:
+ *         description: A list of customers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Customer'
+ */
 router.get('/', customerController.getAllCustomers);
 
-// @desc    Get customer by ID
-// @route   GET /api/customers/:id
+/**
+ * @swagger
+ * /customers/{id}:
+ *   get:
+ *     summary: Get a customer by ID
+ *     tags: [Customers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The customer ID
+ *     responses:
+ *       200:
+ *         description: The customer description by id
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Customer'
+ *       404:
+ *         description: Customer not found
+ */
 router.get(
   '/:id',
   validate({ params: customerValidator.customerIdSchema }),
   customerController.getCustomerById
 );
 
-// @desc    Update customer
-// @route   PUT /api/customers/:id
+/**
+ * @swagger
+ * /customers/{id}:
+ *   put:
+ *     summary: Update a customer
+ *     tags: [Customers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The customer ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Customer'
+ *     responses:
+ *       200:
+ *         description: The updated customer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Customer'
+ *       404:
+ *         description: Customer not found
+ */
 router.put(
   '/:id',
   validate({
@@ -39,16 +128,29 @@ router.put(
   customerController.updateCustomer
 );
 
-// @desc    Delete customer
-// @route   DELETE /api/customers/:id
+/**
+ * @swagger
+ * /customers/{id}:
+ *   delete:
+ *     summary: Delete a customer
+ *     tags: [Customers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The customer ID
+ *     responses:
+ *       200:
+ *         description: Customer deleted
+ *       404:
+ *         description: Customer not found
+ */
 router.delete(
   '/:id',
   validate({ params: customerValidator.customerIdSchema }),
   customerController.deleteCustomer
 );
-
-// @desc    Bulk create customers
-// @route   POST /api/customers/bulk
-router.post('/bulk', customerController.bulkCreateCustomers);
 
 module.exports = router;

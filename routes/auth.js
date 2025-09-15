@@ -3,12 +3,38 @@ const router = express.Router();
 const passport = require('../config/passport');
 const { ensureAuth, ensureGuest } = require('../middlewares/auth');
 
-// @desc    Auth with Google
-// @route   GET /auth/google
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Authentication
+ */
 
-// @desc    Google auth callback
-// @route   GET /auth/google/callback
+/**
+ * @swagger
+ * /auth/google:
+ *   get:
+ *     summary: Authenticate with Google
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirect to Google for authentication
+ */
+router.get(
+  '/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+/**
+ * @swagger
+ * /auth/google/callback:
+ *   get:
+ *     summary: Google authentication callback
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirect to dashboard on success or login on failure
+ */
 router.get(
   '/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
@@ -17,8 +43,18 @@ router.get(
   }
 );
 
-// @desc    Current user
-// @route   GET /auth/user
+/**
+ * @swagger
+ * /auth/user:
+ *   get:
+ *     summary: Get current user
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Current user data
+ *       401:
+ *         description: Unauthorized
+ */
 router.get('/user', ensureAuth, (req, res) => {
   res.json({
     success: true,
@@ -31,8 +67,18 @@ router.get('/user', ensureAuth, (req, res) => {
   });
 });
 
-// @desc    Logout user
-// @route   GET /auth/logout
+/**
+ * @swagger
+ * /auth/logout:
+ *   get:
+ *     summary: Logout user
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ *       500:
+ *         description: Logout failed
+ */
 router.get('/logout', (req, res) => {
   req.logout((err) => {
     if (err) {
