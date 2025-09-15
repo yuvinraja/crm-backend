@@ -35,21 +35,22 @@ app.use(helmet());
 
 // CORS configuration
 // ALLOWED_ORIGINS can be a comma-separated list. If not set, defaults to '*'.
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '*')
+const allowedOrigins = ('*')
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean);
 
 const corsOptions = {
-  origin: allowedOrigins.includes('*')
-    ? '*'
-    : function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
+  // origin: allowedOrigins.includes('*')
+  //   ? '*'
+  //   : function (origin, callback) {
+  //       if (!origin || allowedOrigins.includes(origin)) {
+  //         callback(null, true);
+  //       } else {
+  //         callback(new Error('Not allowed by CORS'));
+  //       }
+  //     },
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
