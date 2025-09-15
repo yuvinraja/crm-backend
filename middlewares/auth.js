@@ -11,7 +11,7 @@ function ensureGuest(req, res, next) {
   if (!req.isAuthenticated()) {
     return next();
   }
-  res.redirect("/dashboard"); // or wherever you want to send logged-in users
+  res.redirect("https://crm-frontend-rosy-delta.vercel.app"); // or wherever you want to send logged-in users
 }
 
 module.exports = { ensureAuth, ensureGuest };
