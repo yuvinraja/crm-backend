@@ -11,35 +11,16 @@ const campaignSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Segment',
       required: true,
+      index: true,
     },
     message: {
       type: String,
       required: true,
     },
-    status: {
-      type: String,
-      enum: ['Draft', 'Scheduled', 'Running', 'Sent', 'Failed'],
-      default: 'Draft',
-    },
-    scheduledAt: Date,
-    completedAt: Date,
-    stats: {
-      totalAudience: {
-        type: Number,
-        default: 0,
-      },
-      sent: {
-        type: Number,
-        default: 0,
-      },
-      failed: {
-        type: Number,
-        default: 0,
-      },
-      pending: {
-        type: Number,
-        default: 0,
-      },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
   },
   {

@@ -1,89 +1,26 @@
 const { z } = require('zod');
 
-// Communication log validation schemas
-const communicationLogCreateSchema = z.object({
-  campaignId: z
-    .string()
-    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid campaign ID format'),
-  customerId: z
-    .string()
-    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid customer ID format'),
-  message: z
-    .string()
-    .trim()
-    .min(1, 'Message is required')
-    .max(1000, 'Message must be less than 1000 characters'),
-  deliveryStatus: z
-    .enum(['PENDING', 'SENT', 'FAILED'])
-    .default('PENDING')
-    .optional(),
-  vendorResponse: z
-    .object({
-      messageId: z.string().optional(),
-      timestamp: z.string().datetime().or(z.date()).optional(),
-      errorMessage: z.string().optional(),
-    })
-    .optional(),
-  sentAt: z
-    .string()
-    .datetime('Invalid sent date format')
-    .or(z.date())
-    .optional(),
-  deliveredAt: z
-    .string()
-    .datetime('Invalid delivered date format')
-    .or(z.date())
-    .optional(),
+const vendorResponseSchema = z.object({
+  messageId: z.string().optional(),
+  timestamp: z.string().datetime().optional(),
+  errorMessage: z.string().optional(),
 });
 
-const communicationLogUpdateSchema = z.object({
-  campaignId: z
-    .string()
-    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid campaign ID format')
-    .optional(),
-  customerId: z
-    .string()
-    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid customer ID format')
-    .optional(),
-  message: z
-    .string()
-    .trim()
-    .min(1, 'Message is required')
-    .max(1000, 'Message must be less than 1000 characters')
-    .optional(),
-  deliveryStatus: z.enum(['PENDING', 'SENT', 'FAILED']).optional(),
-  vendorResponse: z
-    .object({
-      messageId: z.string().optional(),
-      timestamp: z.string().datetime().or(z.date()).optional(),
-      errorMessage: z.string().optional(),
-    })
-    .optional(),
-  sentAt: z
-    .string()
-    .datetime('Invalid sent date format')
-    .or(z.date())
-    .optional(),
-  deliveredAt: z
-    .string()
-    .datetime('Invalid delivered date format')
-    .or(z.date())
-    .optional(),
+const communicationLogCreateSchema = z.object({
+  campaignId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid campaignId'),
+  customerId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid customerId'),
+  deliveryStatus: z.enum(['PENDING', 'SENT', 'FAILED']).default('PENDING'),
+  vendorResponse: vendorResponseSchema.optional(),
 });
+
+const communicationLogUpdateSchema = communicationLogCreateSchema.partial();
 
 const communicationLogIdSchema = z.object({
-  id: z
-    .string()
-    .regex(/^[0-9a-fA-F]{24}$/, 'Invalid communication log ID format'),
-});
-
-const deliveryStatusSchema = z.object({
-  deliveryStatus: z.enum(['PENDING', 'SENT', 'FAILED']),
+  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid logId'),
 });
 
 module.exports = {
   communicationLogCreateSchema,
   communicationLogUpdateSchema,
   communicationLogIdSchema,
-  deliveryStatusSchema,
 };

@@ -12,6 +12,7 @@ const customerSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
+      index: true,
     },
     phone: {
       type: String,
@@ -22,17 +23,9 @@ const customerSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    visits: {
-      type: Number,
-      default: 0,
-    },
     lastVisit: {
       type: Date,
       default: null,
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
     },
   },
   {

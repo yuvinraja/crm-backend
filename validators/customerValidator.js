@@ -1,61 +1,17 @@
 const { z } = require('zod');
 
-// Customer validation schemas
 const customerCreateSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Name is required')
-    .max(100, 'Name must be less than 100 characters'),
-  email: z.string().email('Invalid email format').toLowerCase(),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^[\+]?[0-9\s\-\(\)]+$/, 'Invalid phone number format')
-    .optional(),
-  totalSpending: z
-    .number()
-    .min(0, 'Total spending must be positive')
-    .default(0)
-    .optional(),
-  visits: z
-    .number()
-    .int('Visits must be an integer')
-    .min(0, 'Visits must be positive')
-    .default(0)
-    .optional(),
-  lastVisit: z.string().datetime('Invalid date format').or(z.date()).optional(),
-  isActive: z.boolean().default(true).optional(),
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email'),
+  phone: z.string().optional(),
+  totalSpending: z.number().nonnegative().optional(),
+  lastVisit: z.string().datetime().nullable().optional(),
 });
 
-const customerUpdateSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Name is required')
-    .max(100, 'Name must be less than 100 characters')
-    .optional(),
-  email: z.string().email('Invalid email format').toLowerCase().optional(),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^[\+]?[0-9\s\-\(\)]+$/, 'Invalid phone number format')
-    .optional(),
-  totalSpending: z
-    .number()
-    .min(0, 'Total spending must be positive')
-    .optional(),
-  visits: z
-    .number()
-    .int('Visits must be an integer')
-    .min(0, 'Visits must be positive')
-    .optional(),
-  lastVisit: z.string().datetime('Invalid date format').or(z.date()).optional(),
-  isActive: z.boolean().optional(),
-});
+const customerUpdateSchema = customerCreateSchema.partial();
 
 const customerIdSchema = z.object({
-  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid customer ID format'),
+  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid customerId'),
 });
 
 module.exports = {
