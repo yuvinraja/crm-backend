@@ -10,7 +10,6 @@ const segmentCreateSchema = z.object({
   name: z.string().min(1, 'Segment name is required'),
   conditions: z.array(conditionSchema).nonempty(),
   logic: z.enum(['AND', 'OR']).default('AND'),
-  createdBy: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid userId'),
 });
 
 const segmentUpdateSchema = segmentCreateSchema.partial();
