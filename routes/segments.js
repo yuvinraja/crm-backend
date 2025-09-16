@@ -184,4 +184,46 @@ router.get(
   segmentController.getSegmentCustomers
 );
 
+/**
+ * @swagger
+ * /segments/preview:
+ *   post:
+ *     summary: Preview segment audience without saving
+ *     tags: [Segments]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               conditions:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Condition'
+ *               logic:
+ *                 type: string
+ *                 enum: [AND, OR]
+ *     responses:
+ *       200:
+ *         description: Audience preview
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 audienceSize:
+ *                   type: number
+ *                 sampleCustomers:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Customer'
+ */
+router.post(
+  '/preview',
+  validate({ body: segmentValidator.segmentPreviewSchema }),
+  segmentController.previewSegment
+);
+
+
 module.exports = router;

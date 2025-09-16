@@ -19,8 +19,16 @@ const segmentIdSchema = z.object({
   id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid segmentId'),
 });
 
+const segmentPreviewSchema = z.object({
+  conditions: z
+    .array(conditionSchema)
+    .min(1, 'At least one condition is required'),
+  logic: z.enum(['AND', 'OR']),
+});
+
 module.exports = {
   segmentCreateSchema,
   segmentUpdateSchema,
   segmentIdSchema,
+  segmentPreviewSchema,
 };
