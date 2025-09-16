@@ -3,6 +3,7 @@ const Segment = require('../models/Segment');
 const Customer = require('../models/Customer');
 const CommunicationLog = require('../models/CommunicationLog');
 const axios = require('axios');
+const mongoose = require('mongoose');
 
 const campaignController = {
   // Dummy Vendor API simulation

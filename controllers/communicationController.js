@@ -1,6 +1,7 @@
 const CommunicationLog = require('../models/CommunicationLog');
 const Campaign = require('../models/Campaign');
 const Customer = require('../models/Customer');
+const mongoose = require('mongoose');
 
 const communicationController = {
   // Handle delivery receipt webhook
