@@ -9,10 +9,10 @@ const campaignRoutes = require('./campaigns');
 const communicationRoutes = require('./communications');
 
 router.use('/auth', authRoutes);
-router.use('/api/customers', customerRoutes);
-router.use('/api/orders', orderRoutes);
-router.use('/api/segments', segmentRoutes);
-router.use('/api/campaigns', campaignRoutes);
-router.use('/api/communications', communicationRoutes);
+router.use('/customers', customerRoutes);
+router.use('/orders', orderRoutes);
+router.use('/segments', segmentRoutes);
+router.use('/campaigns', campaignRoutes);
+router.use('/communications', communicationRoutes);
 
 module.exports = router;
