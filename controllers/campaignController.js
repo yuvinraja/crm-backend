@@ -10,47 +10,63 @@ const campaignController = {
     try {
       // Simulate 90% success rate
       const isSuccess = Math.random() < 0.9;
-      
+
       if (isSuccess) {
         // Simulate successful delivery
         const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
+
         // Simulate async webhook callback to delivery receipt API
-        setTimeout(async () => {
-          try {
-            await axios.post(`${process.env.BASE_URL || 'http://localhost:3000'}/api/communications/delivery-receipt`, {
-              messageId,
-              campaignId,
-              customerId: customer._id,
-              status: 'SENT',
-              timestamp: new Date().toISOString(),
-            });
-          } catch (error) {
-            console.error('Failed to send delivery receipt:', error.message);
-          }
-        }, Math.random() * 5000 + 1000); // Random delay 1-6 seconds
-        
+        setTimeout(
+          async () => {
+            try {
+              await axios.post(
+                `${process.env.BASE_URL || 'http://localhost:3000'}/api/communications/delivery-receipt`,
+                {
+                  messageId,
+                  campaignId,
+                  customerId: customer._id,
+                  status: 'SENT',
+                  timestamp: new Date().toISOString(),
+                }
+              );
+            } catch (error) {
+              console.error('Failed to send delivery receipt:', error.message);
+            }
+          },
+          Math.random() * 5000 + 1000
+        ); // Random delay 1-6 seconds
+
         return { success: true, messageId };
       } else {
         // Simulate failure
         const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        setTimeout(async () => {
-          try {
-            await axios.post(`${process.env.BASE_URL || 'http://localhost:3000'}/api/communications/delivery-receipt`, {
-              messageId,
-              campaignId,
-              customerId: customer._id,
-              status: 'FAILED',
-              timestamp: new Date().toISOString(),
-              errorMessage: 'Simulated delivery failure',
-            });
-          } catch (error) {
-            console.error('Failed to send delivery receipt:', error.message);
-          }
-        }, Math.random() * 3000 + 500);
-        
-        return { success: false, messageId, error: 'Simulated delivery failure' };
+
+        setTimeout(
+          async () => {
+            try {
+              await axios.post(
+                `${process.env.BASE_URL || 'http://localhost:3000'}/api/communications/delivery-receipt`,
+                {
+                  messageId,
+                  campaignId,
+                  customerId: customer._id,
+                  status: 'FAILED',
+                  timestamp: new Date().toISOString(),
+                  errorMessage: 'Simulated delivery failure',
+                }
+              );
+            } catch (error) {
+              console.error('Failed to send delivery receipt:', error.message);
+            }
+          },
+          Math.random() * 3000 + 500
+        );
+
+        return {
+          success: false,
+          messageId,
+          error: 'Simulated delivery failure',
+        };
       }
     } catch (error) {
       return { success: false, error: error.message };
@@ -66,7 +82,7 @@ const campaignController = {
       };
 
       const campaign = await Campaign.create(campaignData);
-      
+
       // Get segment and its customers
       const segment = await Segment.findById(req.body.segmentId);
       if (!segment) {
@@ -78,11 +94,14 @@ const campaignController = {
 
       // Build query from segment conditions
       const segmentController = require('./segmentController');
-      const query = segmentController.buildSegmentQuery(segment.conditions, segment.logic);
+      const query = segmentController.buildSegmentQuery(
+        segment.conditions,
+        segment.logic
+      );
       const customers = await Customer.find(query);
 
       // Create communication logs for each customer
-      const communicationLogs = customers.map(customer => ({
+      const communicationLogs = customers.map((customer) => ({
         campaignId: campaign._id,
         customerId: customer._id,
         deliveryStatus: 'PENDING',
@@ -92,7 +111,11 @@ const campaignController = {
 
       // Start delivery process asynchronously
       setImmediate(() => {
-        campaignController.initiateDelivery(campaign, customers, req.body.message);
+        campaignController.initiateDelivery(
+          campaign,
+          customers,
+          req.body.message
+        );
       });
 
       const populatedCampaign = await Campaign.findById(campaign._id)
@@ -131,7 +154,10 @@ const campaignController = {
             campaign._id
           );
         } catch (error) {
-          console.error(`Failed to send message to customer ${customer._id}:`, error.message);
+          console.error(
+            `Failed to send message to customer ${customer._id}:`,
+            error.message
+          );
         }
       });
 
@@ -177,7 +203,9 @@ const campaignController = {
       }
 
       // Get delivery stats
-      const stats = await campaignController.getCampaignStatsHelper(campaign._id);
+      const stats = await campaignController.getCampaignStatsHelper(
+        campaign._id
+      );
 
       res.json({
         success: true,
@@ -273,7 +301,7 @@ const campaignController = {
       pending: 0,
     };
 
-    stats.forEach(stat => {
+    stats.forEach((stat) => {
       result.total += stat.count;
       result[stat._id.toLowerCase()] = stat.count;
     });
@@ -284,8 +312,10 @@ const campaignController = {
   // Get campaign statistics
   async getCampaignStats(req, res) {
     try {
-      const stats = await campaignController.getCampaignStatsHelper(req.params.id);
-      
+      const stats = await campaignController.getCampaignStatsHelper(
+        req.params.id
+      );
+
       res.json({
         success: true,
         data: stats,
@@ -302,13 +332,22 @@ const campaignController = {
   // Get campaign history with stats
   async getCampaignHistory(req, res) {
     try {
+      if (!req.user || !req.user._id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized: user not found',
+        });
+      }
+
       const campaigns = await Campaign.find({ createdBy: req.user._id })
         .populate('segmentId', 'name audienceSize')
         .sort({ createdAt: -1 });
 
       const campaignHistory = await Promise.all(
         campaigns.map(async (campaign) => {
-          const stats = await campaignController.getCampaignStatsHelper(campaign._id);
+          const stats = await campaignController.getCampaignStatsHelper(
+            campaign._id
+          );
           return {
             ...campaign.toObject(),
             stats,
