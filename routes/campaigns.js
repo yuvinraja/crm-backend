@@ -62,6 +62,18 @@ router.get('/', campaignController.getAllCampaigns);
 
 /**
  * @swagger
+ * /campaigns/history:
+ *   get:
+ *     summary: Get campaign history with stats
+ *     tags: [Campaigns]
+ *     responses:
+ *       200:
+ *         description: Campaign history with stats
+ */
+router.get('/history', campaignController.getCampaignHistory);
+
+/**
+ * @swagger
  * /campaigns/{id}:
  *   get:
  *     summary: Get a campaign by ID
@@ -176,17 +188,5 @@ router.get(
   validate({ params: campaignValidator.campaignIdSchema }),
   campaignController.getCampaignStats
 );
-
-/**
- * @swagger
- * /campaigns/history:
- *   get:
- *     summary: Get campaign history with stats
- *     tags: [Campaigns]
- *     responses:
- *       200:
- *         description: Campaign history with stats
- */
-router.get('/history', campaignController.getCampaignHistory);
 
 module.exports = router;
