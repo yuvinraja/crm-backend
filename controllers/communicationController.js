@@ -15,7 +15,7 @@ const communicationController = {
         errorMessage,
       } = req.body;
 
-      // Find and update the communication log
+      // Update log
       const log = await CommunicationLog.findOneAndUpdate(
         { campaignId, customerId },
         {
@@ -35,6 +35,11 @@ const communicationController = {
           message: 'Communication log not found',
         });
       }
+
+      // Update campaign stats
+      const inc =
+        status === 'SENT' ? { 'stats.sent': 1 } : { 'stats.failed': 1 };
+      await Campaign.findByIdAndUpdate(campaignId, { $inc: inc });
 
       res.json({
         success: true,
@@ -121,42 +126,28 @@ const communicationController = {
       const { campaignId } = req.params;
       const { status } = req.query;
 
-      const filter = { campaignId };
+      const filter = { campaignId: new mongoose.Types.ObjectId(campaignId) };
       if (status) filter.deliveryStatus = status;
 
       const logs = await CommunicationLog.find(filter)
         .populate('customerId', 'name email phone')
         .sort({ createdAt: -1 });
 
-      // Get stats
+      // Aggregate stats
       const stats = await CommunicationLog.aggregate([
-        { $match: { campaignId: campaignId } },
-        {
-          $group: {
-            _id: '$deliveryStatus',
-            count: { $sum: 1 },
-          },
-        },
+        { $match: { campaignId: new mongoose.Types.ObjectId(campaignId) } },
+        { $group: { _id: '$deliveryStatus', count: { $sum: 1 } } },
       ]);
 
-      const statsFormatted = {
-        total: 0,
-        sent: 0,
-        failed: 0,
-        pending: 0,
-      };
-
-      stats.forEach((stat) => {
-        statsFormatted.total += stat.count;
-        statsFormatted[stat._id.toLowerCase()] = stat.count;
+      const statsFormatted = { total: 0, sent: 0, failed: 0, pending: 0 };
+      stats.forEach((s) => {
+        statsFormatted.total += s.count;
+        statsFormatted[s._id.toLowerCase()] = s.count;
       });
 
       res.json({
         success: true,
-        data: {
-          logs,
-          stats: statsFormatted,
-        },
+        data: { logs, stats: statsFormatted },
       });
     } catch (error) {
       res.status(500).json({

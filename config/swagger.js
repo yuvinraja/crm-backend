@@ -12,6 +12,10 @@ const options = {
         url: 'http://localhost:3000',
         description: 'Development server',
       },
+      {
+        url: 'https://crm-backend-1k8z.onrender.com',
+        description: 'Production server',
+      },
     ],
     components: {
       schemas: {
@@ -50,6 +54,27 @@ const options = {
             orderDate: { type: 'string', format: 'date-time' },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        Condition: {
+          type: 'object',
+          required: ['field', 'operator', 'value'],
+          properties: {
+            field: {
+              type: 'string',
+              enum: ['totalSpending', 'lastVisit', 'orderCount'],
+            },
+            operator: {
+              type: 'string',
+              enum: ['>', '<', '=', '>=', '<=', 'contains'],
+            },
+            value: {
+              oneOf: [
+                { type: 'string' },
+                { type: 'number' },
+                { type: 'boolean' },
+              ],
+            },
           },
         },
         Segment: {

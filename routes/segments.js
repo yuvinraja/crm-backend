@@ -155,9 +155,9 @@ router.delete(
 
 /**
  * @swagger
- * /segments/{id}/audience:
+ * /segments/{id}/customers:
  *   get:
- *     summary: Preview segment audience
+ *     summary: Get customers in a segment
  *     tags: [Segments]
  *     parameters:
  *       - in: path
@@ -224,6 +224,5 @@ router.post(
   validate({ body: segmentValidator.segmentPreviewSchema }),
   segmentController.previewSegment
 );
-
 
 module.exports = router;

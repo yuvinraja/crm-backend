@@ -22,6 +22,11 @@ const campaignSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    stats: {
+      sent: { type: Number, default: 0 },
+      failed: { type: Number, default: 0 },
+      audienceSize: { type: Number, default: 0 },
+    },
   },
   {
     timestamps: true,

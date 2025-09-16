@@ -53,6 +53,15 @@ router.get(
  *     responses:
  *       200:
  *         description: Current user data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
  */
