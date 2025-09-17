@@ -39,8 +39,14 @@ router.get(
   '/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      (process.env.NODE_ENV === 'production'
+        ? 'https://crm-frontend-rosy-delta.vercel.app/'
+        : 'http://localhost:3001');
+
     // Redirect to frontend dashboard
-    res.redirect('https://crm-frontend-rosy-delta.vercel.app/');
+    res.redirect(frontendUrl);
   }
 );
 
