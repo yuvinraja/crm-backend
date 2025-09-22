@@ -90,8 +90,8 @@ npm run dev
 
 ## Project Architecture
 
-```
-├── models/          # MongoDB schemas (User, Customer, Order, Segment, Campaign)
+```bash
+├── models/          # MongoDB schemas
 ├── controllers/     # Business logic and API handlers  
 ├── routes/          # Express route definitions
 ├── middlewares/     # Auth & validation middleware
