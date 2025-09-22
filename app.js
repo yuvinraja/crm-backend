@@ -33,23 +33,7 @@ app.use(cookieParser());
 // Security headers
 app.use(helmet());
 
-// // CORS configuration
-// // ALLOWED_ORIGINS can be a comma-separated list. If not set, defaults to '*'.
-// const allowedOrigins = ('*')
-//   .split(',')
-//   .map((o) => o.trim())
-//   .filter(Boolean);
-
 const corsOptions = {
-  // origin: allowedOrigins.includes('*')
-  //   ? '*'
-  //   : function (origin, callback) {
-  //       if (!origin || allowedOrigins.includes(origin)) {
-  //         callback(null, true);
-  //       } else {
-  //         callback(new Error('Not allowed by CORS'));
-  //       }
-  //     },
   origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -79,9 +63,9 @@ app.use(
       autoRemove: 'native',
     }),
     cookie: {
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
@@ -107,7 +91,6 @@ app.get('/api-docs.json', (req, res) => {
   res.send(swaggerSpecs);
 });
 
-
 // Routes
 app.use('/', indexRouter);
 
@@ -116,7 +99,6 @@ app.get('/', (req, res) => {
 });
 
 // Basic error handler (ensure no helmet header override)
-// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.error(err); // Could integrate a logger here
   res.status(err.status || 500).json({

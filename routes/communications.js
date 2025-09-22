@@ -12,34 +12,6 @@ const { communicationLogValidator } = require('../validators');
  *   description: Communication log management
  */
 
-/**
- * @swagger
- * /communications/delivery-receipt:
- *   post:
- *     summary: Handle delivery receipts from a vendor
- *     tags: [Communications]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               messageId:
- *                 type: string
- *               status:
- *                 type: string
- *                 enum: ['SENT', 'FAILED']
- *               timestamp:
- *                 type: string
- *                 format: date-time
- *     responses:
- *       200:
- *         description: Delivery receipt handled
- */
-
-router.post('/delivery-receipt', communicationController.handleDeliveryReceipt);
-
 // Apply authentication to remaining routes
 router.use(ensureAuth);
 
@@ -114,41 +86,5 @@ router.get(
  *                 $ref: '#/components/schemas/CommunicationLog'
  */
 router.get('/campaign/:campaignId', communicationController.getLogsByCampaign);
-
-/**
- * @swagger
- * /communications/{id}/status:
- *   put:
- *     summary: Update delivery status
- *     tags: [Communications]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The communication log ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               deliveryStatus:
- *                 type: string
- *                 enum: ['PENDING', 'SENT', 'FAILED']
- *     responses:
- *       200:
- *         description: Delivery status updated
- *       404:
- *         description: Communication log not found
- */
-
-router.put(
-  '/:id/status',
-  validate({ params: communicationLogValidator.communicationLogIdSchema }),
-  communicationController.updateDeliveryStatus
-);
 
 module.exports = router;
